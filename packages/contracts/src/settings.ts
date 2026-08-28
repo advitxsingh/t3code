@@ -171,6 +171,13 @@ export const ClientSettingsSchema = Schema.Struct({
     Schema.withDecodingDefault(Effect.succeed([])),
   ),
   diffIgnoreWhitespace: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(true))),
+  // Preferred shell executable (or command name) for new terminals. `null`
+  // falls back to the platform default (e.g. pwsh on Windows). Client-local
+  // because the shell choice is a per-user UI preference for the terminal
+  // surface, not server state shared across environments.
+  defaultTerminalShell: Schema.NullOr(
+    TrimmedNonEmptyString.pipe(Schema.check(Schema.isMaxLength(1024))),
+  ).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
   environmentIdentificationMode: EnvironmentIdentificationMode.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_ENVIRONMENT_IDENTIFICATION_MODE)),
   ),
@@ -906,6 +913,7 @@ export const ClientSettingsPatch = Schema.Struct({
   confirmThreadArchive: Schema.optionalKey(Schema.Boolean),
   confirmThreadDelete: Schema.optionalKey(Schema.Boolean),
   diffIgnoreWhitespace: Schema.optionalKey(Schema.Boolean),
+  defaultTerminalShell: Schema.optionalKey(Schema.NullOr(TrimmedNonEmptyString)),
   environmentIdentificationMode: Schema.optionalKey(EnvironmentIdentificationMode),
   glassOpacity: Schema.optionalKey(GlassOpacity),
   fontSizeInterface: Schema.optionalKey(InterfaceFontSize),

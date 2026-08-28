@@ -943,34 +943,48 @@ const PersistentThreadTerminalDrawer = memo(function PersistentThreadTerminalDra
     threadRef,
   ]);
 
-  const createNewTerminal = useCallback(() => {
-    if (!cwd) {
-      return;
-    }
-    const terminalId = nextTerminalId(allocatableTerminalIds);
-    storeNewTerminal(threadRef, terminalId);
-    bumpFocusRequestId();
-    void openTerminal({
-      environmentId: threadRef.environmentId,
-      input: {
-        threadId,
-        terminalId,
-        cwd,
-        ...(effectiveWorktreePath != null ? { worktreePath: effectiveWorktreePath } : {}),
-        env: runtimeEnv,
-      },
-    });
-  }, [
-    bumpFocusRequestId,
-    cwd,
-    effectiveWorktreePath,
-    allocatableTerminalIds,
-    runtimeEnv,
-    storeNewTerminal,
-    threadId,
-    threadRef,
-    openTerminal,
-  ]);
+  const defaultTerminalShell = useClientSettings((s) => s.defaultTerminalShell);
+  const openNewTerminal = useCallback(
+    (shell?: string) => {
+      if (!cwd) {
+        return;
+      }
+      const terminalId = nextTerminalId(allocatableTerminalIds);
+      storeNewTerminal(threadRef, terminalId);
+      bumpFocusRequestId();
+      void openTerminal({
+        environmentId: threadRef.environmentId,
+        input: {
+          threadId,
+          terminalId,
+          cwd,
+          ...(effectiveWorktreePath != null ? { worktreePath: effectiveWorktreePath } : {}),
+          env: runtimeEnv,
+          ...(shell != null ? { shell } : {}),
+        },
+      });
+    },
+    [
+      bumpFocusRequestId,
+      cwd,
+      effectiveWorktreePath,
+      allocatableTerminalIds,
+      runtimeEnv,
+      storeNewTerminal,
+      threadId,
+      threadRef,
+      openTerminal,
+    ],
+  );
+
+  const createNewTerminal = useCallback(
+    () => openNewTerminal(defaultTerminalShell ?? undefined),
+    [openNewTerminal, defaultTerminalShell],
+  );
+  const createNewTerminalWithShell = useCallback(
+    (shell: string) => openNewTerminal(shell),
+    [openNewTerminal],
+  );
 
   const activateTerminal = useCallback(
     (terminalId: string) => {
@@ -1048,6 +1062,7 @@ const PersistentThreadTerminalDrawer = memo(function PersistentThreadTerminalDra
         onSplitTerminal={splitTerminal}
         onSplitTerminalVertical={splitTerminalVertical}
         onNewTerminal={createNewTerminal}
+        onNewTerminalWithShell={createNewTerminalWithShell}
         splitShortcutLabel={visible ? splitShortcutLabel : undefined}
         splitVerticalShortcutLabel={visible ? splitVerticalShortcutLabel : undefined}
         newShortcutLabel={visible ? newShortcutLabel : undefined}
@@ -1074,6 +1089,7 @@ interface PersistentThreadTerminalPanelProps {
   onSplitTerminal: () => void;
   onSplitTerminalVertical: () => void;
   onNewTerminal: () => void;
+  onNewTerminalWithShell: (shell: string) => void;
   onActiveTerminalChange: (terminalId: string) => void;
   onCloseTerminal: (terminalId: string) => void;
   splitShortcutLabel?: string | undefined;
@@ -1092,6 +1108,7 @@ const PersistentThreadTerminalPanel = memo(function PersistentThreadTerminalPane
   onSplitTerminal,
   onSplitTerminalVertical,
   onNewTerminal,
+  onNewTerminalWithShell,
   onActiveTerminalChange,
   onCloseTerminal,
   splitShortcutLabel,
@@ -1218,6 +1235,7 @@ const PersistentThreadTerminalPanel = memo(function PersistentThreadTerminalPane
       onSplitTerminal={onSplitTerminal}
       onSplitTerminalVertical={onSplitTerminalVertical}
       onNewTerminal={onNewTerminal}
+      onNewTerminalWithShell={onNewTerminalWithShell}
       splitShortcutLabel={splitShortcutLabel}
       splitVerticalShortcutLabel={splitVerticalShortcutLabel}
       newShortcutLabel={newShortcutLabel}
@@ -3537,34 +3555,47 @@ function ChatViewContent(props: ChatViewProps) {
       useRightPanelStore.getState().close(activeThreadRef);
     }
   }, [activeThreadRef]);
-  const addTerminalSurface = useCallback(() => {
-    if (!activeThreadRef || !activeThreadId || !activeProject) return;
-    const cwd = gitCwd ?? activeProject.workspaceRoot;
-    const terminalId = nextTerminalId(allocatableActiveTerminalIds);
-    useRightPanelStore.getState().openTerminal(activeThreadRef, terminalId);
-    setTerminalFocusRequestId((value) => value + 1);
-    void openTerminal({
-      environmentId: activeThreadRef.environmentId,
-      input: {
-        threadId: activeThreadId,
-        terminalId,
-        cwd,
-        ...(activeThreadWorktreePath != null ? { worktreePath: activeThreadWorktreePath } : {}),
-        env: projectScriptRuntimeEnv({
-          project: { cwd: activeProject.workspaceRoot },
-          worktreePath: activeThreadWorktreePath,
-        }),
-      },
-    });
-  }, [
-    activeProject,
-    activeThreadId,
-    activeThreadRef,
-    activeThreadWorktreePath,
-    allocatableActiveTerminalIds,
-    gitCwd,
-    openTerminal,
-  ]);
+  const defaultTerminalShell = useClientSettings((s) => s.defaultTerminalShell);
+  const openNewTerminalSurface = useCallback(
+    (shell?: string) => {
+      if (!activeThreadRef || !activeThreadId || !activeProject) return;
+      const cwd = gitCwd ?? activeProject.workspaceRoot;
+      const terminalId = nextTerminalId(allocatableActiveTerminalIds);
+      useRightPanelStore.getState().openTerminal(activeThreadRef, terminalId);
+      setTerminalFocusRequestId((value) => value + 1);
+      void openTerminal({
+        environmentId: activeThreadRef.environmentId,
+        input: {
+          threadId: activeThreadId,
+          terminalId,
+          cwd,
+          ...(activeThreadWorktreePath != null ? { worktreePath: activeThreadWorktreePath } : {}),
+          env: projectScriptRuntimeEnv({
+            project: { cwd: activeProject.workspaceRoot },
+            worktreePath: activeThreadWorktreePath,
+          }),
+          ...(shell != null ? { shell } : {}),
+        },
+      });
+    },
+    [
+      activeProject,
+      activeThreadId,
+      activeThreadRef,
+      activeThreadWorktreePath,
+      allocatableActiveTerminalIds,
+      gitCwd,
+      openTerminal,
+    ],
+  );
+  const addTerminalSurface = useCallback(
+    () => openNewTerminalSurface(defaultTerminalShell ?? undefined),
+    [openNewTerminalSurface, defaultTerminalShell],
+  );
+  const addTerminalSurfaceWithShell = useCallback(
+    (shell: string) => openNewTerminalSurface(shell),
+    [openNewTerminalSurface],
+  );
   const splitPanelTerminal = useCallback(
     (direction: "horizontal" | "vertical" = "horizontal") => {
       if (
@@ -6725,6 +6756,7 @@ function ChatViewContent(props: ChatViewProps) {
         onSplitTerminal={splitPanelTerminal}
         onSplitTerminalVertical={splitPanelTerminalVertical}
         onNewTerminal={addTerminalSurface}
+        onNewTerminalWithShell={addTerminalSurfaceWithShell}
         onActiveTerminalChange={activatePanelTerminal}
         onCloseTerminal={closePanelTerminal}
         splitShortcutLabel={splitTerminalShortcutLabel ?? undefined}
