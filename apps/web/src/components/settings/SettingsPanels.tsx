@@ -1290,16 +1290,6 @@ function CodeFontRow({
   );
 }
 
-const DEFAULT_TERMINAL_SHELL_VALUE = "__default__";
-const TERMINAL_SHELL_CHOICES: ReadonlyArray<{ value: string; label: string }> = [
-  { value: "pwsh", label: "PowerShell 7 (pwsh)" },
-  { value: "powershell", label: "Windows PowerShell" },
-  { value: "cmd", label: "Command Prompt (cmd)" },
-  { value: "bash", label: "Bash" },
-  { value: "zsh", label: "Zsh" },
-  { value: "sh", label: "Sh" },
-];
-
 function TerminalFontRow() {
   const settings = usePrimarySettings();
   const updateSettings = useUpdatePrimarySettings();
@@ -2022,53 +2012,6 @@ export function GeneralSettingsPanel() {
             }
           />
         ) : null}
-
-        <SettingsRow
-          {...searchableSetting("terminal-default-shell")}
-          description="Shell executable used for new terminals. The shell picker on a terminal overrides this for that terminal only."
-          resetAction={
-            settings.defaultTerminalShell != null ? (
-              <SettingResetButton
-                label="default terminal shell"
-                onClick={() =>
-                  updateSettings({
-                    defaultTerminalShell: DEFAULT_UNIFIED_SETTINGS.defaultTerminalShell,
-                  })
-                }
-              />
-            ) : null
-          }
-          control={
-            <Select
-              value={settings.defaultTerminalShell ?? DEFAULT_TERMINAL_SHELL_VALUE}
-              onValueChange={(value) =>
-                updateSettings({
-                  defaultTerminalShell: value === DEFAULT_TERMINAL_SHELL_VALUE ? null : value,
-                })
-              }
-            >
-              <SelectTrigger className="w-full sm:w-40" aria-label="Default terminal shell">
-                <SelectValue>
-                  {settings.defaultTerminalShell === null
-                    ? "Default (platform)"
-                    : (TERMINAL_SHELL_CHOICES.find(
-                        (choice) => choice.value === settings.defaultTerminalShell,
-                      )?.label ?? settings.defaultTerminalShell)}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectPopup align="end" alignItemWithTrigger={false}>
-                <SelectItem hideIndicator value={DEFAULT_TERMINAL_SHELL_VALUE}>
-                  Default (platform)
-                </SelectItem>
-                {TERMINAL_SHELL_CHOICES.map((choice) => (
-                  <SelectItem hideIndicator key={choice.value} value={choice.value}>
-                    {choice.label}
-                  </SelectItem>
-                ))}
-              </SelectPopup>
-            </Select>
-          }
-        />
 
         <SettingsRow
           {...searchableSetting("time-format")}

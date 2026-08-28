@@ -943,7 +943,6 @@ const PersistentThreadTerminalDrawer = memo(function PersistentThreadTerminalDra
     threadRef,
   ]);
 
-  const defaultTerminalShell = useClientSettings((s) => s.defaultTerminalShell);
   const openNewTerminal = useCallback(
     (shell?: string) => {
       if (!cwd) {
@@ -977,10 +976,7 @@ const PersistentThreadTerminalDrawer = memo(function PersistentThreadTerminalDra
     ],
   );
 
-  const createNewTerminal = useCallback(
-    () => openNewTerminal(defaultTerminalShell ?? undefined),
-    [openNewTerminal, defaultTerminalShell],
-  );
+  const createNewTerminal = useCallback(() => openNewTerminal(), [openNewTerminal]);
   const createNewTerminalWithShell = useCallback(
     (shell: string) => openNewTerminal(shell),
     [openNewTerminal],
@@ -3555,7 +3551,6 @@ function ChatViewContent(props: ChatViewProps) {
       useRightPanelStore.getState().close(activeThreadRef);
     }
   }, [activeThreadRef]);
-  const defaultTerminalShell = useClientSettings((s) => s.defaultTerminalShell);
   const openNewTerminalSurface = useCallback(
     (shell?: string) => {
       if (!activeThreadRef || !activeThreadId || !activeProject) return;
@@ -3588,10 +3583,7 @@ function ChatViewContent(props: ChatViewProps) {
       openTerminal,
     ],
   );
-  const addTerminalSurface = useCallback(
-    () => openNewTerminalSurface(defaultTerminalShell ?? undefined),
-    [openNewTerminalSurface, defaultTerminalShell],
-  );
+  const addTerminalSurface = useCallback(() => openNewTerminalSurface(), [openNewTerminalSurface]);
   const addTerminalSurfaceWithShell = useCallback(
     (shell: string) => openNewTerminalSurface(shell),
     [openNewTerminalSurface],

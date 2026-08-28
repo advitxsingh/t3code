@@ -127,11 +127,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     to: "/settings/general",
   },
   {
-    id: "terminal-default-shell",
-    title: "Default terminal shell",
-    to: "/settings/general",
-  },
-  {
     id: "hide-whitespace-changes",
     title: "Hide whitespace changes",
     to: "/settings/general",

@@ -556,7 +556,7 @@ function resolveShellCandidates(
   requestedShell?: string | null,
 ): ShellCandidate[] {
   const requested = shellCandidateFromCommand(
-    normalizeShellCommand(requestedShell ?? null, platform),
+    normalizeShellCommand(requestedShell ?? undefined, platform),
     platform,
   );
   const requestedCandidate = shellCandidateFromCommand(
@@ -2617,6 +2617,7 @@ export const makeWithOptions = Effect.fn("TerminalManager.makeWithOptions")(func
             hasRunningSubprocess: false,
             childCommandLabel: null,
             runtimeEnv: normalizedRuntimeEnv(input.env),
+            requestedShell: input.shell ?? null,
           };
           const createdSession = session;
           yield* modifyManagerState((state) => {
