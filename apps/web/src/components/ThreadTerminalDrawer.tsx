@@ -1498,15 +1498,15 @@ export default function ThreadTerminalDrawer({
               >
                 <ChevronDown className="size-3.25" />
               </PopoverTrigger>
-              <PopoverPopup align="start" sideOffset={6} viewportClassName="p-1" className="w-60">
+              <PopoverPopup align="start" sideOffset={6} viewportClassName="p-1.5" className="w-64">
                 <div className="flex flex-col gap-0.5">
-                  <div className="px-1.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="px-2 pb-1 pt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     New terminal
                   </div>
                   {availableShells.length === 0 ? (
                     <button
                       type="button"
-                      className="flex h-6 w-full cursor-pointer items-center rounded-md px-1.5 text-xs text-muted-foreground hover:bg-accent/60"
+                      className="flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60"
                       onClick={onNewTerminalAction}
                     >
                       Default shell
@@ -1516,11 +1516,11 @@ export default function ThreadTerminalDrawer({
                       <button
                         key={shell.id}
                         type="button"
-                        className="flex h-6 w-full cursor-pointer items-center gap-1.5 rounded-md px-1.5 text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                         onClick={() => onNewTerminalWithShell(shell.executable)}
                       >
-                        <TerminalSquare className="size-3 shrink-0" />
-                        <span className="min-w-0 flex-1 truncate text-left">{shell.label}</span>
+                        <TerminalSquare className="size-3.25 shrink-0" />
+                        <span className="min-w-0 flex-1 truncate">{shell.label}</span>
                       </button>
                     ))
                   )}
@@ -1684,17 +1684,17 @@ export default function ThreadTerminalDrawer({
                     <PopoverPopup
                       align="end"
                       sideOffset={6}
-                      viewportClassName="p-1"
-                      className="w-60"
+                      viewportClassName="p-1.5"
+                      className="w-64"
                     >
                       <div className="flex flex-col gap-0.5">
-                        <div className="px-1.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        <div className="px-2 pb-1 pt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                           New terminal
                         </div>
                         {availableShells.length === 0 ? (
                           <button
                             type="button"
-                            className="flex h-6 w-full cursor-pointer items-center rounded-md px-1.5 text-xs text-muted-foreground hover:bg-accent/60"
+                            className="flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60"
                             onClick={onNewTerminalAction}
                           >
                             Default shell
@@ -1704,13 +1704,11 @@ export default function ThreadTerminalDrawer({
                             <button
                               key={shell.id}
                               type="button"
-                              className="flex h-6 w-full cursor-pointer items-center gap-1.5 rounded-md px-1.5 text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                               onClick={() => onNewTerminalWithShell(shell.executable)}
                             >
-                              <TerminalSquare className="size-3 shrink-0" />
-                              <span className="min-w-0 flex-1 truncate text-left">
-                                {shell.label}
-                              </span>
+                              <TerminalSquare className="size-3.25 shrink-0" />
+                              <span className="min-w-0 flex-1 truncate">{shell.label}</span>
                             </button>
                           ))
                         )}
