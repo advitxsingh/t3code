@@ -377,14 +377,3 @@ export const TerminalListShellsResult = Schema.Struct({
   shells: Schema.Array(TerminalDescribedShell),
 });
 export type TerminalListShellsResult = typeof TerminalListShellsResult.Type;
-
-export class TerminalListShellsError extends Schema.TaggedErrorClass<TerminalListShellsError>()(
-  "TerminalListShellsError",
-  {
-    cause: Schema.optional(Schema.Defect()),
-  },
-) {
-  override get message() {
-    return "Failed to discover available shells";
-  }
-}

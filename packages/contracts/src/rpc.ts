@@ -135,7 +135,6 @@ import {
   TerminalCloseInput,
   TerminalError,
   TerminalEvent,
-  TerminalListShellsError,
   TerminalListShellsResult,
   TerminalMetadataStreamEvent,
   TerminalOpenInput,
@@ -834,7 +833,7 @@ export const WsTerminalCloseRpc = Rpc.make(WS_METHODS.terminalClose, {
 export const WsTerminalListShellsRpc = Rpc.make(WS_METHODS.terminalListShells, {
   payload: Schema.Struct({}),
   success: TerminalListShellsResult,
-  error: Schema.Union([TerminalListShellsError, EnvironmentAuthorizationError]),
+  error: EnvironmentAuthorizationError,
 });
 
 export const WsPreviewOpenRpc = Rpc.make(WS_METHODS.previewOpen, {

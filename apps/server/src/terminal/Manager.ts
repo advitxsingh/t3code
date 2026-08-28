@@ -14,7 +14,6 @@ import {
   TerminalCwdStatError,
   TerminalError,
   TerminalHistoryError,
-  TerminalListShellsError,
   TerminalListShellsResult,
   TerminalNotRunningError,
   TerminalResizeError,
@@ -183,7 +182,7 @@ export class TerminalManager extends Context.Service<
     /**
      * List the shells available on the host plus the configured default.
      */
-    readonly listShells: () => Effect.Effect<TerminalListShellsResult, TerminalListShellsError>;
+    readonly listShells: () => Effect.Effect<TerminalListShellsResult>;
 
     /**
      * Subscribe to terminal runtime events with a direct callback.
@@ -555,10 +554,7 @@ function resolveShellCandidates(
   env: NodeJS.ProcessEnv,
   requestedShell?: string | null,
 ): ShellCandidate[] {
-  const requested = shellCandidateFromCommand(
-    normalizeShellCommand(requestedShell ?? undefined, platform),
-    platform,
-  );
+  const requested = shellCandidateFromCommand(requestedShell?.trim() ?? null, platform);
   const requestedCandidate = shellCandidateFromCommand(
     normalizeShellCommand(shellResolver(), platform),
     platform,
@@ -2632,6 +2628,9 @@ export const makeWithOptions = Effect.fn("TerminalManager.makeWithOptions")(func
           session.cwd = input.cwd;
           session.worktreePath = input.worktreePath ?? null;
           session.runtimeEnv = normalizedRuntimeEnv(input.env);
+          if (input.shell !== undefined) {
+            session.requestedShell = input.shell;
+          }
         }
 
         const cols = input.cols ?? session.cols;
@@ -2683,7 +2682,7 @@ export const makeWithOptions = Effect.fn("TerminalManager.makeWithOptions")(func
     );
 
   const listShells: TerminalManager["Service"]["listShells"] = () =>
-    listAvailableShells.pipe(
+    listAvailableShells({ resolveDefaultShell: () => shellResolver() }).pipe(
       Effect.provideService(FileSystem.FileSystem, fileSystem),
       Effect.provideService(Path.Path, path),
       Effect.provideService(HostProcessPlatform, platform),

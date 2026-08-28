@@ -17,6 +17,7 @@ import {
   type ContextMenuItem,
   type ResolvedKeybindingsConfig,
   type ScopedThreadRef,
+  type TerminalDescribedShell,
   type ThreadId,
 } from "@t3tools/contracts";
 import { getTerminalLabel } from "@t3tools/shared/terminalLabels";
@@ -34,6 +35,14 @@ import {
   useState,
 } from "react";
 import { Popover, PopoverPopup, PopoverTrigger } from "~/components/ui/popover";
+import {
+  Menu,
+  MenuGroup,
+  MenuGroupLabel,
+  MenuItem,
+  MenuPopup,
+  MenuTrigger,
+} from "~/components/ui/menu";
 import { Button } from "~/components/ui/button";
 import { PanelTabCloseButton } from "~/components/ui/panel-tab-close-button";
 import { readTextFromClipboard, writeTextToClipboard } from "~/hooks/useCopyToClipboard";
@@ -1049,6 +1058,56 @@ function TerminalActionButton({ label, className, onClick, children }: TerminalA
   );
 }
 
+interface TerminalShellPickerProps {
+  shells: readonly TerminalDescribedShell[];
+  align?: "start" | "end";
+  triggerClassName: string;
+  onSelectDefault: () => void;
+  onSelectShell: (executable: string) => void;
+}
+
+function TerminalShellPicker({
+  shells,
+  align = "start",
+  triggerClassName,
+  onSelectDefault,
+  onSelectShell,
+}: TerminalShellPickerProps) {
+  return (
+    <Menu>
+      <MenuTrigger
+        render={
+          <button
+            type="button"
+            className={triggerClassName}
+            aria-label="Open a new terminal with a shell"
+          />
+        }
+      >
+        <ChevronDown className="size-3.25" />
+      </MenuTrigger>
+      <MenuPopup align={align} sideOffset={6} className="w-64">
+        <MenuGroup>
+          <MenuGroupLabel>New terminal</MenuGroupLabel>
+          {shells.length === 0 ? (
+            <MenuItem onClick={onSelectDefault}>
+              <TerminalSquare className="size-4" />
+              <span>Default shell</span>
+            </MenuItem>
+          ) : (
+            shells.map((shell) => (
+              <MenuItem key={shell.id} onClick={() => onSelectShell(shell.executable)}>
+                <TerminalSquare className="size-4" />
+                <span className="min-w-0 flex-1 truncate">{shell.label}</span>
+              </MenuItem>
+            ))
+          )}
+        </MenuGroup>
+      </MenuPopup>
+    </Menu>
+  );
+}
+
 export default function ThreadTerminalDrawer({
   mode = "drawer",
   threadRef,
@@ -1484,49 +1543,14 @@ export default function ThreadTerminalDrawer({
             >
               <Plus className="size-3.25" />
             </TerminalActionButton>
-            <div className="h-3 w-px bg-border/40" />
-            <Popover>
-              <PopoverTrigger
-                openOnHover={false}
-                render={
-                  <button
-                    type="button"
-                    className="p-1 text-foreground/90 transition-colors hover:bg-accent"
-                    aria-label="Open a new terminal with a shell"
-                  />
-                }
-              >
-                <ChevronDown className="size-3.25" />
-              </PopoverTrigger>
-              <PopoverPopup align="start" sideOffset={6} viewportClassName="p-1.5" className="w-64">
-                <div className="flex flex-col gap-0.5">
-                  <div className="px-2 pb-1 pt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    New terminal
-                  </div>
-                  {availableShells.length === 0 ? (
-                    <button
-                      type="button"
-                      className="flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60"
-                      onClick={onNewTerminalAction}
-                    >
-                      Default shell
-                    </button>
-                  ) : (
-                    availableShells.map((shell) => (
-                      <button
-                        key={shell.id}
-                        type="button"
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                        onClick={() => onNewTerminalWithShell(shell.executable)}
-                      >
-                        <TerminalSquare className="size-3.25 shrink-0" />
-                        <span className="min-w-0 flex-1 truncate">{shell.label}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </PopoverPopup>
-            </Popover>
+            <div className="h-4 w-px bg-border/80" />
+            <TerminalShellPicker
+              shells={availableShells}
+              align="start"
+              triggerClassName="p-1 text-foreground/90 transition-colors hover:bg-accent"
+              onSelectDefault={onNewTerminalAction}
+              onSelectShell={onNewTerminalWithShell}
+            />
             <div className="h-4 w-px bg-border/80" />
             <TerminalActionButton
               className="p-1 text-foreground/90 transition-colors hover:bg-accent"
@@ -1668,53 +1692,13 @@ export default function ThreadTerminalDrawer({
                   >
                     <Plus className="size-3.25" />
                   </TerminalActionButton>
-                  <Popover>
-                    <PopoverTrigger
-                      openOnHover={false}
-                      render={
-                        <button
-                          type="button"
-                          className="inline-flex h-full items-center border-l border-border/70 px-1 text-foreground/90 transition-colors hover:bg-accent/70"
-                          aria-label="Open a new terminal with a shell"
-                        />
-                      }
-                    >
-                      <ChevronDown className="size-3.25" />
-                    </PopoverTrigger>
-                    <PopoverPopup
-                      align="end"
-                      sideOffset={6}
-                      viewportClassName="p-1.5"
-                      className="w-64"
-                    >
-                      <div className="flex flex-col gap-0.5">
-                        <div className="px-2 pb-1 pt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                          New terminal
-                        </div>
-                        {availableShells.length === 0 ? (
-                          <button
-                            type="button"
-                            className="flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60"
-                            onClick={onNewTerminalAction}
-                          >
-                            Default shell
-                          </button>
-                        ) : (
-                          availableShells.map((shell) => (
-                            <button
-                              key={shell.id}
-                              type="button"
-                              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                              onClick={() => onNewTerminalWithShell(shell.executable)}
-                            >
-                              <TerminalSquare className="size-3.25 shrink-0" />
-                              <span className="min-w-0 flex-1 truncate">{shell.label}</span>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </PopoverPopup>
-                  </Popover>
+                  <TerminalShellPicker
+                    shells={availableShells}
+                    align="end"
+                    triggerClassName="inline-flex h-full items-center border-l border-border/70 px-1 text-foreground/90 transition-colors hover:bg-accent/70"
+                    onSelectDefault={onNewTerminalAction}
+                    onSelectShell={onNewTerminalWithShell}
+                  />
                   <TerminalActionButton
                     className="inline-flex h-full items-center border-l border-border/70 px-1 text-foreground/90 transition-colors hover:bg-accent/70"
                     onClick={() => confirmCloseTerminal(resolvedActiveTerminalId)}

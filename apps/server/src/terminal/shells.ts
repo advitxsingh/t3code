@@ -6,7 +6,7 @@
  * a listed shell may still fail to spawn in a given environment, in which case
  * the terminal manager falls back through its candidate chain.
  */
-import { TerminalDescribedShell, type TerminalListShellsResult } from "@t3tools/contracts";
+import { TerminalDescribedShell } from "@t3tools/contracts";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
 import { isCommandAvailable } from "@t3tools/shared/shell";
 import * as Effect from "effect/Effect";
@@ -42,17 +42,17 @@ const POSIX_SHELLS: ReadonlyArray<TerminalDescribedShell> = [
   {
     id: "zsh",
     label: "Zsh",
-    executable: "/bin/zsh",
+    executable: "zsh",
   },
   {
     id: "bash",
     label: "Bash",
-    executable: "/bin/bash",
+    executable: "bash",
   },
   {
     id: "sh",
     label: "Sh",
-    executable: "/bin/sh",
+    executable: "sh",
   },
 ];
 
@@ -68,33 +68,40 @@ function defaultShellForPlatform(platform: NodeJS.Platform): string {
  * tree which is usually already on PATH when installed with its default options;
  * we probe both the bare command and the canonical install locations so a
  * partially-PATH'd Git still shows up.
+ *
+ * `defaultShell` is derived from `resolveDefaultShell` when provided so it
+ * matches the shell the terminal manager actually launches (e.g. a host whose
+ * `SHELL` is `/bin/zsh`), falling back to the platform default otherwise.
  */
-export const listAvailableShells = Effect.gen(function* () {
-  const platform = yield* HostProcessPlatform;
-  const env: NodeJS.ProcessEnv = yield* HostProcessEnvironment;
-  const detected: TerminalDescribedShell[] = [];
+export const listAvailableShells = (options?: { resolveDefaultShell?: () => string }) =>
+  Effect.gen(function* () {
+    const platform = yield* HostProcessPlatform;
+    const env: NodeJS.ProcessEnv = yield* HostProcessEnvironment;
+    const detected: TerminalDescribedShell[] = [];
 
-  if (platform === "win32") {
-    for (const candidate of WINDOWS_SHELLS) {
-      const executable = yield* resolveWindowsShellExecutable(candidate.executable, env);
-      if (executable) {
-        detected.push({ ...candidate, executable });
+    if (platform === "win32") {
+      for (const candidate of WINDOWS_SHELLS) {
+        const executable = yield* resolveWindowsShellExecutable(candidate.executable, env);
+        if (executable) {
+          detected.push({ ...candidate, executable });
+        }
+      }
+    } else {
+      for (const candidate of POSIX_SHELLS) {
+        if (yield* isCommandAvailable(candidate.executable, { env })) {
+          detected.push(candidate);
+        }
       }
     }
-  } else {
-    for (const candidate of POSIX_SHELLS) {
-      if (yield* isCommandAvailable(candidate.executable, { env })) {
-        detected.push(candidate);
-      }
-    }
-  }
 
-  const result: TerminalListShellsResult = {
-    shells: detected,
-    defaultShell: defaultShellForPlatform(platform),
-  };
-  return result;
-});
+    const resolvedDefault = options?.resolveDefaultShell?.()?.trim();
+    const defaultShell =
+      resolvedDefault && resolvedDefault.length > 0
+        ? resolvedDefault
+        : defaultShellForPlatform(platform);
+
+    return { shells: detected, defaultShell };
+  });
 
 const WINDOWS_SHELL_CANDIDATES_BY_COMMAND = new Map<
   string,
